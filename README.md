@@ -1,4 +1,4 @@
-# expenses_app
+# Expenses_App
 
 A new Flutter project.
-Practice app made in flutter.
+An basic personal expenses app i made in flutter as a practice
