@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 // ignore_for_file: avoid_print, deprecated_member_use
 
 class NewTransaction extends StatefulWidget {
@@ -11,24 +12,49 @@ class NewTransaction extends StatefulWidget {
 }
 
 class _NewTransactionState extends State<NewTransaction> {
-  final titleController = TextEditingController();
+  final _titleController = TextEditingController();
+  final _amountController = TextEditingController();
 
-  final amountController = TextEditingController();
+  DateTime? _selectedDate;
 
-  void submitData() {
-    final enteredTitle = titleController.text;
-    final enteredAmount = double.parse(amountController.text);
+  void _submitData() {
+    if (_amountController.text.isEmpty) {
+      return;
+    }
 
-    if (enteredTitle.isEmpty || enteredAmount < 0) {
+    final enteredTitle = _titleController.text;
+    final enteredAmount = double.parse(_amountController.text);
+
+    if (enteredTitle.isEmpty || enteredAmount < 0 || _selectedDate == null) {
       return;
     }
 
     widget.addTransaction(
-      titleController.text,
-      double.parse(amountController.text),
+      _titleController.text,
+      double.parse(_amountController.text),
+      _selectedDate,
     );
 
     Navigator.of(context).pop();
+  }
+
+  void _presentDatePicker() {
+    showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    ).then(
+      (pickedDate) {
+        if (pickedDate != null) {
+          setState(() {
+            _selectedDate = pickedDate; //* picked date is the date returned by date picker, selected date is the variable to store the choosed date
+          });
+        } else {
+          return;
+        }
+      },
+    );
   }
 
   @override
@@ -44,19 +70,58 @@ class _NewTransactionState extends State<NewTransaction> {
           children: [
             TextField(
               decoration: const InputDecoration(labelText: 'Title'),
-              controller: titleController,
+              controller: _titleController,
             ),
             TextField(
               decoration: const InputDecoration(labelText: 'Amount'),
-              controller: amountController,
+              controller: _amountController,
               keyboardType: TextInputType.number,
-              onSubmitted: (_) => submitData(),
+              onSubmitted: (_) => _submitData(),
             ),
-            FlatButton(
-              onPressed: submitData,
-              child: const Text('Enter Transaction'),
-              textColor: Colors.red,
-              padding: const EdgeInsets.only(left: 2),
+            SizedBox(
+              height: 65,
+              child: Row(
+                children: [
+                  Row(
+                    children: [
+                      Row(
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                _selectedDate == null ? 'No Date Chosen' : 'Picked Date: ${DateFormat.yMd().format(_selectedDate as DateTime)}',
+                              ),
+                              FlatButton(
+                                textColor: Theme.of(context).primaryColor,
+                                onPressed: _presentDatePicker,
+                                child: const Text(
+                                  'Choose A Date',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                RaisedButton(
+                  onPressed: _submitData,
+                  child: const Padding(
+                    padding: EdgeInsets.all(10.0),
+                    child: Text('Enter Transaction'),
+                  ),
+                  color: Theme.of(context).primaryColor,
+                  textColor: Theme.of(context).textTheme.button!.color,
+                  padding: const EdgeInsets.only(left: 2),
+                ),
+              ],
             ),
           ],
         ),

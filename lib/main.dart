@@ -23,6 +23,10 @@ class ExpensesApp extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
               ),
+              button: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
         appBarTheme: AppBarTheme(
           toolbarTextStyle: ThemeData.light().textTheme.copyWith().bodyText2,
@@ -68,11 +72,11 @@ class _HomeState extends State<Home> {
     ).toList();
   }
 
-  void _addTransaction(String txtitle, double txamount) {
+  void _addTransaction(String txtitle, double txamount, DateTime chosenDate) {
     final newTransaction = Transaction(
       title: txtitle,
       amount: txamount,
-      date: DateTime.now(),
+      date: chosenDate,
       id: DateTime.now().toString(),
     );
     setState(() {
