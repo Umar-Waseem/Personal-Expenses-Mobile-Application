@@ -1,10 +1,22 @@
 import 'package:expenses_app/widgets/chart.dart';
 import 'package:expenses_app/widgets/transacion_list.dart';
 import 'package:flutter/material.dart';
+// import 'package:flutter/services.dart';
 import './widgets/new_transaction.dart';
 import './model/transaction.dart';
 
-void main() => runApp(const ExpensesApp());
+void main() {
+  // ?force device to potrait mode
+  // WidgetsFlutterBinding.ensureInitialized();
+  // SystemChrome.setPreferredOrientations(
+  //   [
+  //     DeviceOrientation.portraitUp,
+  //     DeviceOrientation.portraitDown,
+  //   ],
+  // );
+
+  runApp(const ExpensesApp());
+}
 
 class ExpensesApp extends StatelessWidget {
   const ExpensesApp({Key? key}) : super(key: key);
@@ -60,6 +72,9 @@ class _HomeState extends State<Home> {
     //   date: DateTime.now(),
     // ),
   ];
+
+  bool _showChart = false;
+
   List<Transaction> get _recentTransactions {
     return _userTransactions.where(
       (element) {
@@ -107,30 +122,72 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+
+    // ignore: unrelated_type_equality_checks
+    final isLandscape = mediaQuery.orientation == Orientation.landscape;
+
+    final varAppbar = AppBar(
+      title: const Text(
+        'Expenses App',
+        style: TextStyle(fontFamily: 'OpenSans'),
+      ),
+      actions: [
+        IconButton(
+          onPressed: () => _startAddingNewTransaction(context),
+          icon: const Icon(
+            Icons.add,
+          ),
+        )
+      ],
+    );
+
+    final transactionListWidget = SizedBox(
+      height: (MediaQuery.of(context).size.height - varAppbar.preferredSize.height - mediaQuery.padding.top) * 0.75,
+      child: TransactionList(
+        transactions: _userTransactions,
+        deleteTransaction: _deleteTransaction,
+      ),
+    );
+
     return Scaffold(
       backgroundColor: Theme.of(context).primaryColorLight,
-      appBar: AppBar(
-        title: const Text(
-          'Expenses App',
-          style: TextStyle(fontFamily: 'OpenSans'),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () => _startAddingNewTransaction(context),
-            icon: const Icon(
-              Icons.add,
-            ),
-          )
-        ],
-      ),
+      appBar: varAppbar,
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Chart(recentTransactions: _recentTransactions),
-            TransactionList(transactions: _userTransactions, deleteTransaction: _deleteTransaction),
+            if (isLandscape)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Show Chart'),
+                  Switch(
+                    value: _showChart,
+                    onChanged: (value) {
+                      setState(() {
+                        _showChart = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            if (!isLandscape)
+              SizedBox(
+                height: (MediaQuery.of(context).size.height - varAppbar.preferredSize.height - mediaQuery.padding.top) * 0.25,
+                child: Chart(recentTransactions: _recentTransactions),
+              ),
+            if (!isLandscape) transactionListWidget,
+            if (isLandscape)
+              _showChart
+                  ? SizedBox(
+                      height: (MediaQuery.of(context).size.height - varAppbar.preferredSize.height - mediaQuery.padding.top) * 1,
+                      child: Chart(recentTransactions: _recentTransactions),
+                    )
+                  : transactionListWidget,
           ],
         ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton(
         onPressed: () => _startAddingNewTransaction(context),
         child: const Icon(Icons.add),
